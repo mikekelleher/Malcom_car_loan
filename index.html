@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Malcom's Car Loan Payoff App</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+CiAgPHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiByeD0iMTQiIGZpbGw9IiM0Q0Q5NjQiLz4KICA8dGV4dCB4PSIzMiIgeT0iNTAiIGZvbnQtZmFtaWx5PSJBcmlhbCwgSGVsdmV0aWNhLCBzYW5zLXNlcmlmIgogICAgICAgIGZvbnQtc2l6ZT0iNTIiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IndoaXRlIiBmb250LXdlaWdodD0iYm9sZCI+JDwvdGV4dD4KPC9zdmc+">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --rose:       #3a7bd5;
+    --rose-light: #e6f0fc;
+    --rose-dark:  #1a4fa0;
+    --plum:       #1e5fa8;
+    --plum-light: #e3edf9;
+    --plum-dark:  #123d80;
+    --teal:       #0ea5d8;
+    --teal-light: #e0f4fc;
+    --teal-dark:  #0a6e9a;
+    --gold:       #d4a24c;
+    --gold-light: #fdf3e0;
+    --gold-dark:  #a07020;
+    --bg-page:    #f4f8fd;
+    --bg-card:    #ffffff;
+    --bg-row:     #edf4fc;
+    --text-head:  #0d1f3c;
+    --text-body:  #1a2d4a;
+    --text-muted: #5a7aaa;
+    --text-faint: #a0bcd8;
+    --border:     rgba(30,95,168,0.15);
+    --border-mid: rgba(30,95,168,0.28);
+    --radius-md:  10px;
+    --radius-lg:  16px;
+    --radius-xl:  22px;
+    --font-display: 'Playfair Display', Georgia, serif;
+    --font-body:    'DM Sans', system-ui, sans-serif;
+  }
+
+  body {
+    font-family: var(--font-body);
+    background: var(--bg-page);
+    background-image:
+      radial-gradient(ellipse at 10% 0%, rgba(58,123,213,0.12) 0%, transparent 55%),
+      radial-gradient(ellipse at 90% 20%, rgba(30,95,168,0.10) 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 100%, rgba(14,165,216,0.08) 0%, transparent 55%);
+    color: var(--text-body);
+    min-height: 100vh;
+    padding: 2.5rem 1rem 4rem;
+  }
+
+  .page { max-width: 800px; margin: 0 auto; }
+
+  /* ── Page header ─────────────────────────────────────────────────── */
+  .page-header {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+  .page-eyebrow {
+    font-family: var(--font-body);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--rose);
+    margin-bottom: 8px;
+  }
+  .page-title {
+    font-family: var(--font-display);
+    font-size: clamp(28px, 5vw, 42px);
+    font-weight: 700;
+    color: var(--text-head);
+    line-height: 1.15;
+    margin-bottom: 10px;
+  }
+  .page-title em {
+    font-style: italic;
+    color: var(--plum);
+  }
+  .page-subtitle {
+    font-size: 14px;
+    color: var(--text-muted);
+  }
+
+  /* ── Save status ─────────────────────────────────────────────────── */
+  .save-row {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: .75rem;
+  }
+  .save-status {
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--text-faint);
+  }
+  .save-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--text-faint);
+    flex-shrink: 0;
+    transition: background .3s;
+  }
+  .save-status.saving .save-dot { background: var(--gold); }
+  .save-status.saved  .save-dot { background: var(--teal); }
+  .save-status.error  .save-dot { background: var(--rose); }
+
+  /* ── Config banner ───────────────────────────────────────────────── */
+  .config-banner {
+    background: var(--gold-light);
+    border: 1px solid rgba(212,162,76,0.4);
+    border-radius: var(--radius-lg);
+    padding: 1.1rem 1.4rem;
+    margin-bottom: 1.5rem;
+    display: none;
+  }
+  .config-banner.visible { display: block; }
+  .config-banner p { font-size: 13px; color: var(--gold-dark); line-height: 1.65; }
+  .config-banner strong { font-weight: 600; }
+  .config-banner code {
+    font-family: monospace; font-size: 12px;
+    background: rgba(0,0,0,0.07); padding: 1px 5px; border-radius: 3px;
+  }
+  .config-banner ol { margin: .5rem 0 .5rem 1.25rem; }
+  .config-banner li { font-size: 13px; color: var(--gold-dark); margin-bottom: 4px; }
+  .config-fields { display: flex; gap: 10px; margin-top: .75rem; flex-wrap: wrap; }
+  .config-fields input {
+    flex: 1; min-width: 180px; font-size: 13px; padding: 7px 11px;
+    border: 1px solid rgba(212,162,76,0.5); border-radius: var(--radius-md);
+    background: var(--bg-card); color: var(--text-body); outline: none; font-family: monospace;
+  }
+  .config-fields input:focus { border-color: var(--gold-dark); }
+  .config-save-btn {
+    font-size: 13px; font-weight: 600; padding: 7px 18px;
+    border: none; border-radius: var(--radius-md);
+    background: linear-gradient(135deg, var(--gold), #e8b86a);
+    color: #fff; cursor: pointer; white-space: nowrap;
+    box-shadow: 0 2px 8px rgba(212,162,76,0.35);
+  }
+  .config-save-btn:hover { opacity: .9; }
+
+  /* ── Header card ─────────────────────────────────────────────────── */
+  .header-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    padding: 1.5rem 1.75rem 1.25rem;
+    margin-bottom: 1.25rem;
+    box-shadow: 0 4px 24px rgba(30,95,168,0.07), 0 1px 4px rgba(30,95,168,0.06);
+    position: relative;
+    overflow: hidden;
+  }
+  .header-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--rose), var(--plum), var(--teal));
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  }
+
+  .field-group { display: flex; flex-direction: column; gap: 5px; margin-bottom: 1.25rem; }
+
+  .field-label {
+    font-size: 10px; font-weight: 600; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: .12em;
+  }
+
+  .principal-input {
+    font-family: var(--font-body);
+    font-size: 26px; font-weight: 700; width: 220px;
+    border: none; border-bottom: 2px solid var(--border-mid);
+    background: transparent; color: var(--text-head);
+    padding: 2px 0; outline: none;
+  }
+  .principal-input:focus { border-bottom-color: var(--plum); }
+
+  .summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+
+  .metric {
+    background: var(--bg-page);
+    border-radius: var(--radius-lg);
+    padding: 1rem 1.1rem;
+    border: 1px solid var(--border);
+  }
+  .metric-label {
+    font-size: 10px; color: var(--text-muted); margin-bottom: 6px;
+    font-weight: 600; text-transform: uppercase; letter-spacing: .1em;
+  }
+  .metric-value { font-family: var(--font-body); font-size: 22px; font-weight: 700; color: var(--text-head); }
+  .metric-value.paid      { color: var(--teal-dark); }
+  .metric-value.remaining { color: var(--rose-dark); }
+
+  .progress-bar {
+    height: 6px; background: var(--plum-light);
+    border-radius: 99px; overflow: hidden; margin-top: 16px;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--rose), var(--plum), var(--teal));
+    border-radius: 99px; transition: width .5s cubic-bezier(.4,0,.2,1);
+  }
+
+  /* ── Table card ──────────────────────────────────────────────────── */
+  .table-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    box-shadow: 0 4px 24px rgba(30,95,168,0.07), 0 1px 4px rgba(30,95,168,0.06);
+  }
+
+  .table-head {
+    display: grid;
+    grid-template-columns: 36px 1fr 140px 100px 64px;
+    padding: .7rem 1.5rem;
+    background: linear-gradient(90deg, var(--plum-light), var(--rose-light));
+    border-bottom: 1px solid var(--border);
+  }
+
+  .th {
+    font-size: 10px; font-weight: 700; color: var(--plum-dark);
+    text-transform: uppercase; letter-spacing: .1em;
+  }
+  .th.right  { text-align: right; }
+  .th.center { text-align: center; }
+
+  .row {
+    display: grid;
+    grid-template-columns: 36px 1fr 140px 100px 64px;
+    align-items: center;
+    padding: .55rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    transition: background .12s;
+    min-height: 50px;
+  }
+  .row:last-child { border-bottom: none; }
+  .row:hover { background: #eef4fc; }
+  .row.paid-row { background: var(--teal-light); }
+  .row.paid-row:hover { background: #c8e8f8; }
+
+  .row-num { font-size: 12px; color: var(--text-faint); font-weight: 600; }
+
+  .date-display {
+    font-size: 14px; color: var(--text-body); cursor: pointer;
+    padding: 4px 7px; border-radius: 6px; border: 1px solid transparent;
+    display: inline-block; width: fit-content; font-weight: 500;
+  }
+  .date-display:hover { border-color: var(--border-mid); background: var(--plum-light); }
+
+  .date-input {
+    font-size: 13px; padding: 4px 7px;
+    border: 1px solid var(--border-mid); border-radius: 6px;
+    background: var(--bg-card); color: var(--text-body);
+    outline: none; width: 148px;
+  }
+  .date-input:focus { border-color: var(--plum); }
+
+  .amount-wrap { display: flex; align-items: center; justify-content: flex-end; }
+  .amt-prefix { font-size: 13px; color: var(--text-muted); margin-right: 2px; }
+
+  .amount-input {
+    font-size: 14px; font-weight: 600; width: 100px; text-align: right;
+    border: 1px solid var(--border-mid); border-radius: 6px;
+    padding: 4px 8px; background: var(--bg-card); color: var(--text-body); outline: none;
+    font-family: var(--font-body);
+  }
+  .amount-input:focus { border-color: var(--plum); }
+  .amount-input:disabled { background: transparent; border-color: transparent; cursor: default; }
+
+  .amount-locked {
+    font-size: 14px; font-weight: 600; color: var(--teal-dark);
+    text-align: right; padding: 4px 8px; display: block; width: 100%;
+    font-family: var(--font-body);
+  }
+
+  .status-cell { display: flex; align-items: center; justify-content: flex-end; }
+
+  .paid-badge {
+    font-size: 11px; font-weight: 600; color: var(--teal-dark);
+    background: rgba(14,165,216,0.18); padding: 3px 9px;
+    border-radius: 99px; white-space: nowrap; letter-spacing: .02em;
+  }
+  .unpaid-badge { font-size: 11px; color: var(--text-faint); font-weight: 500; }
+
+  .toggle-cell { display: flex; align-items: center; justify-content: center; }
+
+  .toggle { position: relative; width: 38px; height: 22px; cursor: pointer; display: block; }
+  .toggle input { opacity: 0; width: 0; height: 0; position: absolute; }
+  .slider {
+    position: absolute; inset: 0; background: #c8d8ee;
+    border-radius: 99px; transition: background .25s;
+  }
+  .slider::before {
+    content: ''; position: absolute; width: 16px; height: 16px;
+    left: 3px; top: 3px; background: white; border-radius: 50%;
+    transition: transform .25s; box-shadow: 0 1px 4px rgba(0,0,0,0.18);
+  }
+  .toggle input:checked + .slider { background: linear-gradient(135deg, var(--plum), var(--rose)); }
+  .toggle input:checked + .slider::before { transform: translateX(16px); }
+
+  @media (max-width: 580px) {
+    .table-head, .row { grid-template-columns: 28px 1fr 110px 80px 52px; }
+    .summary-grid { grid-template-columns: 1fr 1fr; }
+    .summary-grid .metric:last-child { grid-column: span 2; }
+    .page-title { font-size: 26px; }
+    .header-card { padding: 1.25rem 1.25rem 1rem; }
+    .table-head, .row { padding-left: 1rem; padding-right: 1rem; }
+  }
+
+  /* ── Principal lock/edit ─────────────────────────────────────────── */
+  .metric-label-row {
+    display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;
+  }
+  .lock-btn {
+    background: none; border: 1px solid var(--border-mid); border-radius: 6px;
+    padding: 3px 6px; cursor: pointer; color: var(--text-muted);
+    display: flex; align-items: center; transition: background .15s, color .15s;
+    line-height: 1;
+  }
+  .lock-btn:hover { background: var(--plum-light); color: var(--plum); }
+  .lock-btn.unlocked { background: var(--rose-light); border-color: var(--rose); color: var(--rose-dark); }
+  .principal-display {
+    font-family: var(--font-body); font-size: 22px; font-weight: 700;
+    color: var(--text-head); line-height: 1; cursor: default;
+  }
+  .principal-edit-input {
+    font-family: var(--font-body); font-size: 22px; font-weight: 700;
+    width: 100%; border: none; border-bottom: 2px solid var(--plum);
+    background: transparent; color: var(--text-head); outline: none;
+    padding: 2px 0; margin-top: 0;
+  }
+
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header class="page-header">
+    <h1 class="page-title">Malcom's <em>Car Loan</em><br>Payoff App</h1>
+    <p class="page-subtitle">Track every payment and watch that balance disappear 🎉</p>
+  </header>
+
+  <div class="save-row">
+    <div class="save-status" id="saveStatus">
+      <span class="save-dot"></span>
+      <span id="saveLabel">—</span>
+    </div>
+  </div>
+
+  <div class="config-banner" id="configBanner">
+    <p><strong>One-time setup required</strong> — connect a free JSONBin storage bin to sync data across devices:</p>
+    <ol>
+      <li>Go to <strong>jsonbin.io</strong>, create a free account, and copy your <strong>X-Master-Key</strong> from the API Keys page.</li>
+      <li>Click <strong>New Bin</strong>, paste <code>{"principal":10000,"rows":[]}</code> as the content, save it, and copy the <strong>Bin ID</strong> from the URL.</li>
+      <li>Paste both values below and click Connect — credentials are stored in this browser only.</li>
+    </ol>
+    <div class="config-fields">
+      <input type="password" id="cfgKey" placeholder="X-Master-Key  ($2a$10$...)" autocomplete="off" />
+      <input type="text"     id="cfgBin" placeholder="Bin ID  (67a3f...)" autocomplete="off" />
+      <button class="config-save-btn" onclick="saveConfig()">Connect</button>
+    </div>
+  </div>
+
+  <div class="header-card">
+    <div class="summary-grid">
+      <div class="metric metric-principal">
+        <div class="metric-label-row">
+          <span class="metric-label">Original loan</span>
+          <button class="lock-btn" id="principalLockBtn" onclick="togglePrincipalLock()" title="Click to unlock and edit">
+            <svg id="lockIcon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          </button>
+        </div>
+        <div class="principal-display" id="principalDisplay">$0.00</div>
+        <input class="principal-edit-input" type="number" id="principal" value="" min="0" step="100" placeholder="0.00" style="display:none" />
+      </div>
+      <div class="metric">
+        <div class="metric-label">Total paid</div>
+        <div class="metric-value paid" id="sum-paid">$0.00</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Remaining balance</div>
+        <div class="metric-value remaining" id="sum-remaining">$0.00</div>
+      </div>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progress" style="width:0%"></div></div>
+  </div>
+
+  <div class="table-card">
+    <div class="table-head">
+      <div class="th">#</div>
+      <div class="th">Payment date</div>
+      <div class="th right">Amount</div>
+      <div class="th right">Status</div>
+      <div class="th center">Paid</div>
+    </div>
+    <div id="rows"></div>
+  </div>
+
+</div>
+<script>
+const LS_KEY = 'loantracker_malcolm_cfg';
+
+function getConfig() {
+  try { return JSON.parse(localStorage.getItem(LS_KEY)) || {}; } catch { return {}; }
+}
+function saveConfig() {
+  const key = document.getElementById('cfgKey').value.trim();
+  const bin = document.getElementById('cfgBin').value.trim();
+  if (!key || !bin) { alert('Please enter both the API key and Bin ID.'); return; }
+  localStorage.setItem(LS_KEY, JSON.stringify({ key, bin }));
+  document.getElementById('configBanner').classList.remove('visible');
+  loadRemote();
+}
+
+let saveTimer = null;
+
+function setStatus(st, msg) {
+  const el = document.getElementById('saveStatus');
+  el.className = 'save-status ' + st;
+  document.getElementById('saveLabel').textContent = msg;
+}
+
+async function loadRemote() {
+  const cfg = getConfig();
+  if (!cfg.key || !cfg.bin) {
+    document.getElementById('configBanner').classList.add('visible');
+    initDefaultState(); renderRows(); recalc(); return;
+  }
+  setStatus('saving', 'Loading…');
+  try {
+    const res = await fetch(`https://api.jsonbin.io/v3/b/${cfg.bin}/latest`, {
+      headers: { 'X-Master-Key': cfg.key }
+    });
+    if (!res.ok) throw new Error(res.status);
+    const data = (await res.json()).record;
+    document.getElementById('principal').value = data.principal ?? 10000;
+    document.getElementById('principalDisplay').textContent = fmtMoney(data.principal ?? 10000);
+    principalLocked = data.principalLocked !== false;
+    if (!principalLocked) togglePrincipalLock();
+    initDefaultState();
+    if (Array.isArray(data.rows)) {
+      data.rows.forEach((saved, i) => {
+        if (i < state.length) {
+          state[i].date   = saved.date   ?? state[i].date;
+          state[i].amount = saved.amount ?? '';
+          state[i].paid   = saved.paid   ?? false;
+        }
+      });
+    }
+    renderRows(); recalc(); setStatus('saved', 'Loaded');
+  } catch (e) {
+    setStatus('error', 'Load failed');
+    initDefaultState(); renderRows(); recalc();
+  }
+}
+
+async function saveRemote() {
+  const cfg = getConfig();
+  if (!cfg.key || !cfg.bin) return;
+  setStatus('saving', 'Saving…');
+  const payload = {
+    principal: parseFloat(document.getElementById('principal').value) || 0,
+    principalLocked: principalLocked,
+    rows: state.map(r => ({ date: r.date, amount: r.amount, paid: r.paid }))
+  };
+  try {
+    const res = await fetch(`https://api.jsonbin.io/v3/b/${cfg.bin}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'X-Master-Key': cfg.key },
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) throw new Error(res.status);
+    setStatus('saved', 'Saved');
+  } catch (e) {
+    setStatus('error', 'Save failed');
+  }
+}
+
+function cascadeDatesFrom(startIdx) {
+  // Find the date of the row just before startIdx to base subsequent months from
+  let baseDate;
+  if (startIdx === 0) {
+    baseDate = new Date();
+  } else {
+    const p = state[startIdx - 1].date.split('-');
+    baseDate = new Date(+p[0], +p[1] - 1, +p[2]);
+  }
+  for (let j = startIdx; j < state.length; j++) {
+    if (!state[j].editingDate) {
+      // next 1st of month from baseDate, offset by (j - startIdx + 1) months
+      const d = new Date(baseDate);
+      d.setMonth(d.getMonth() + (j - startIdx + 1));
+      d.setDate(1);
+      state[j].date = toInputVal(d);
+    }
+  }
+}
+
+function scheduleSave() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(saveRemote, 1200);
+}
+
+const NUM = 30;
+const state = [];
+
+function addMonths(d, n) {
+  const r = new Date(d);
+  r.setMonth(r.getMonth() + n + 1);
+  r.setDate(1);
+  return r;
+}
+function toInputVal(d) { return d.toISOString().slice(0, 10); }
+function fmtDate(s) {
+  if (!s) return '—';
+  const p = s.split('-');
+  const d = new Date(+p[0], +p[1]-1, +p[2]);
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+function fmtMoney(v) {
+  return '$' + parseFloat(v||0).toLocaleString('en-US', { minimumFractionDigits:2, maximumFractionDigits:2 });
+}
+
+function initDefaultState() {
+  state.length = 0;
+  const today = new Date();
+  for (let i = 0; i < NUM; i++) {
+    state.push({ date: toInputVal(addMonths(today, i)), amount: '', paid: false, editingDate: false });
+  }
+}
+
+function recalc() {
+  const principal = parseFloat(document.getElementById('principal').value) || 0;
+  let totalPaid = 0;
+  state.forEach(r => { if (r.paid) totalPaid += parseFloat(r.amount) || 0; });
+  const remaining = Math.max(0, principal - totalPaid);
+  document.getElementById('principalDisplay').textContent = fmtMoney(principal);
+  document.getElementById('sum-paid').textContent      = fmtMoney(totalPaid);
+  document.getElementById('sum-remaining').textContent = fmtMoney(remaining);
+  const pct = principal > 0 ? Math.min(100, (totalPaid / principal) * 100) : 0;
+  document.getElementById('progress').style.width = pct.toFixed(1) + '%';
+}
+
+function renderRows() {
+  const container = document.getElementById('rows');
+  container.innerHTML = '';
+  state.forEach((row, i) => {
+    const div = document.createElement('div');
+    div.className = 'row' + (row.paid ? ' paid-row' : '');
+
+    const numCell = document.createElement('div');
+    numCell.className = 'row-num';
+    numCell.textContent = i + 1;
+
+    const dateCell = document.createElement('div');
+    if (row.editingDate) {
+      const inp = document.createElement('input');
+      inp.type = 'date'; inp.className = 'date-input'; inp.value = row.date;
+      inp.addEventListener('change', () => { state[i].date = inp.value; state[i].editingDate = false; renderRows(); scheduleSave(); });
+      inp.addEventListener('blur',   () => { state[i].editingDate = false; renderRows(); });
+      dateCell.appendChild(inp);
+      setTimeout(() => inp.focus(), 0);
+    } else {
+      const span = document.createElement('span');
+      span.className = 'date-display'; span.title = 'Click to edit';
+      span.textContent = fmtDate(row.date);
+      span.addEventListener('click', () => { state[i].editingDate = true; renderRows(); });
+      dateCell.appendChild(span);
+    }
+
+    const amtCell = document.createElement('div');
+    amtCell.className = 'amount-wrap';
+    if (row.paid) {
+      const locked = document.createElement('span');
+      locked.className = 'amount-locked';
+      locked.textContent = fmtMoney(row.amount);
+      amtCell.appendChild(locked);
+    } else {
+      const prefix = document.createElement('span');
+      prefix.className = 'amt-prefix'; prefix.textContent = '$';
+      const inp = document.createElement('input');
+      inp.type = 'number'; inp.className = 'amount-input';
+      inp.min = '0'; inp.step = '0.01'; inp.value = row.amount; inp.placeholder = '0.00';
+      inp.addEventListener('input', () => { state[i].amount = inp.value; recalc(); scheduleSave(); });
+      amtCell.appendChild(prefix); amtCell.appendChild(inp);
+    }
+
+    const statusCell = document.createElement('div');
+    statusCell.className = 'status-cell';
+    const badge = document.createElement('span');
+    badge.className = row.paid ? 'paid-badge' : 'unpaid-badge';
+    badge.textContent = row.paid ? '✓ Paid' : 'Pending';
+    statusCell.appendChild(badge);
+
+    const toggleCell = document.createElement('div');
+    toggleCell.className = 'toggle-cell';
+    const label = document.createElement('label'); label.className = 'toggle';
+    const cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = row.paid;
+    cb.addEventListener('change', () => {
+      state[i].paid = cb.checked;
+      if (cb.checked) {
+        // cascade all unpaid dates after this row
+        cascadeDatesFrom(i + 1);
+      }
+      renderRows(); recalc(); scheduleSave();
+    });
+    const sliderSpan = document.createElement('span'); sliderSpan.className = 'slider';
+    label.appendChild(cb); label.appendChild(sliderSpan);
+    toggleCell.appendChild(label);
+
+    div.appendChild(numCell); div.appendChild(dateCell); div.appendChild(amtCell);
+    div.appendChild(statusCell); div.appendChild(toggleCell);
+    container.appendChild(div);
+  });
+}
+
+// principal input live update
+document.getElementById('principal').addEventListener('input', () => { recalc(); scheduleSave(); });
+
+let principalLocked = true;
+
+function togglePrincipalLock() {
+  principalLocked = !principalLocked;
+  const btn = document.getElementById('principalLockBtn');
+  const display = document.getElementById('principalDisplay');
+  const inp = document.getElementById('principal');
+  const icon = document.getElementById('lockIcon');
+  if (principalLocked) {
+    display.style.display = '';
+    inp.style.display = 'none';
+    btn.classList.remove('unlocked');
+    btn.title = 'Click to unlock and edit';
+    icon.innerHTML = '<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>';
+    recalc();
+    scheduleSave();
+  } else {
+    display.style.display = 'none';
+    inp.style.display = '';
+    btn.classList.add('unlocked');
+    btn.title = 'Click to lock amount';
+    icon.innerHTML = '<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/>';
+    inp.focus();
+  }
+}
+loadRemote();
+</script>
+</body>
+</html>
